@@ -1,10 +1,64 @@
-#include "include/iter.hpp"
+#include <iostream>
+#include "include/Array.hpp"
 
-int main( void )
+#define MAX_VAL 750
+
+void leak()
 {
-	int a[] = {2, 3, 5, 2, 6};
-	float b[] = {2.234, 3.5, 5.12, 2.03, 6.99};
-	char c[] = {'a', 'r', 'i', 'g', 'a', 't', 'o'};
+	system("leaks array");
+}
 
-	return (0);
+int main(int, char**)
+{
+	atexit(leak);
+	Array<int> numbers(MAX_VAL);
+	int* mirror = new int[MAX_VAL];
+    srand(time(NULL));
+    for (int i = 0; i < MAX_VAL; i++)
+    {
+        const int value = rand();
+        numbers[i] = value;
+        mirror[i] = value;
+    }
+    //SCOPE
+    {
+        Array<int> tmp = numbers;
+        Array<int> test(tmp);
+    }
+
+    for (int i = 0; i < MAX_VAL; i++)
+    {
+        if (mirror[i] != numbers[i])
+        {
+            std::cerr << "didn't save the same value!!" << std::endl;
+            return 1;
+        }
+    }
+    // Print each element
+    for (int i = 0; i < MAX_VAL; i++)
+		std::cout << numbers[i] << ", ";
+    std::cerr << std::endl;
+	try
+	{
+        numbers[-2] = 0;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+    try
+    {
+        numbers[MAX_VAL] = 0;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+
+    for (int i = 0; i < MAX_VAL; i++)
+    {
+        numbers[i] = rand();
+    }
+    delete [] mirror;
+    return 0;
 }
